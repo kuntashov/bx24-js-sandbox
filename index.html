@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+<script src="https://kuntashov.ru/b24/apps/cart/myb24.js?v=1"></script> <!-- //api.bitrix24.com/api/v1/ -->
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+<!-- link rel="stylesheet" href="https://kuntashov.ru/b24/apps/ui/semantic.min.css">
+<script src="https://kuntashov.ru/b24/apps/ui/semantic.min.js"></script -->
+
+<script src="https://unpkg.com/codeflask/build/codeflask.min.js"></script>
+
+
+<style type="text/css">
+    body {
+        font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    }
+
+    h2 {
+        font-family: "OpenSans-Light",sans-serif;
+    }
+
+    label {
+        display: block;
+    }
+    
+    .footer {
+        margin-top:100px;
+    }
+    
+    .footer p {
+        font-size: 12px !important;
+    }
+
+    .ui.container {
+        margin: 15px;
+    }
+ 
+    #code {
+        background: #eee;
+    }
+
+    #runCode {
+        margin-bottom: 10px;
+    }
+
+</style>
+</head>
+<body>
+<!-- 
+Александр Кунташов <kuntashov@gmail.com> http://kuntashov.ru
+Открыт для обсуждения любых интеграции любых решений на 1С и Битрикс24.
+-->
+
+<button id="runCode">Выполнить</button> <span><input type="checkbox" name="clearConsole">Очистить консоль перед выполнением</span>
+<div id="code" style="width: 80%px; height: 80px;">
+    
+</div>
+
+<script>
+(function($) {
+
+    const KEY_LAST_SNIPPET = 'lastSnippet';
+    const KEY_CLEAR_CONSOLE = 'clearConsole';
+
+    function initFlask() {
+        window['flask']  = new CodeFlask('#code', {
+          language: 'js',
+          lineNumbers: true,
+          areaId: 'editorTextarea',
+          ariaLabelledby: 'header',
+          handleTabs: true
+        });
+    }
+
+    function restoreSettings() {
+        var savedCode = sessionStorage.getItem('KEY_LAST_SNIPPET');
+        if (!!savedCode) {
+            window['flask'].updateCode(savedCode);
+        }
+        $('input[name="clearConsole"]').prop('checked', !!sessionStorage.getItem('KEY_CLEAR_CONSOLE'))
+    }
+
+    function getChoices() {
+        return [
+            'BX24.callMethod',
+            'BX.callBatch',
+            'crm.section.list',
+            'crm.productsection.list'
+        ];
+    }
+
+    $(document).ready(function(){
+
+        initFlask();
+        restoreSettings();
+
+        $('#runCode').on('click', function() {
+            var code = window['flask'].getCode();
+            if ($('input[name="clearConsole"]').is(':checked')) {
+                console.clear();
+            }
+            eval(code);
+        })
+
+        window['flask'].onUpdate(function (code) {
+            sessionStorage.setItem('KEY_LAST_SNIPPET', code);
+        });
+
+        $('input[name="clearConsole"]').click(function() {
+            sessionStorage.setItem('KEY_CLEAR_CONSOLE', $(this).is(':checked'));
+        });
+
+    });
+
+})(jQuery);
+</script>
+
+</body>
+</html>
